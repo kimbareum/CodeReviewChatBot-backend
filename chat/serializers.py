@@ -30,6 +30,17 @@ class ChatSerializer(serializers.ModelSerializer):
         model = Chat
         fields = ['id', 'title', 'content']
 
+    
+    def validate(self, data):
+        title = data.get('title')
+        content = data.get('content')
+        # if not title:
+        #     self.validated_data['title'] = 
+        if not content:
+            raise serializers.ValidationError('질문은 필수 입력 값입니다.')
+
+        return super().validate(data)
+
 
     def to_representation(self, obj):
         rep = super().to_representation(obj)

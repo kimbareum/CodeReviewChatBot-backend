@@ -13,17 +13,32 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.contrib.auth import get_user_model
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer, SignupSerializer
 
 # Create your views here.
 
 User = get_user_model()
 
 
-@permission_classes([AllowAny])
+class SingupView(APIView):
+
+    def post(self, request):
+        print(request.data)
+        if request.user.is_authenticated:
+            return Response("이미 로그인 되어 있습니다.", status=status.HTTP_400_BAD_REQUEST)
+        serializer = SignupSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response("회원가입에 성공했습니다.", status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# @permission_classes([AllowAny])
 class LoginView(APIView):
 
     def post(self, request):
+        print(request.data)
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -46,6 +61,7 @@ class LoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# @permission_classes([AllowAny])
 class LogoutView(APIView):
 
     def post(self, request):
@@ -53,24 +69,23 @@ class LogoutView(APIView):
         # 요청 데이터에서 refresh 토큰을 가져옵니다.
         refresh_token = request.COOKIES.get('refresh_token')
         if refresh_token:
-            # RefreshToken 클래스를 사용하여 refresh 토큰 문자열을 파싱합니다.
             token = RefreshToken(refresh_token)
             token.blacklist()
         else:
-            return Response({'error': 'Refresh 토큰이 제공되지 않았습니다.'}, status=400)
-        response = Response({'message': '로그아웃 성공'}, status=200)
+            return Response('Refresh 토큰이 제공되지 않았습니다.', status=status.HTTP_400_BAD_REQUEST)
+        response = Response({'message': '로그아웃 성공'})
         response.set_cookie('refresh_token', '', httponly=True, samesite='None', secure=True)
         return response
 
 
-@permission_classes([AllowAny])
+# @permission_classes([AllowAny])
 class RefreshTokenView(APIView):
 
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
 
         if not refresh_token:
-            return Response({"error": "Refresh Token이 없습니다."}, status=400)
+            return Response("Refresh Token이 없습니다.", status=status.HTTP_400_BAD_REQUEST)
 
         try:
             refresh = RefreshToken(refresh_token)
@@ -82,4 +97,4 @@ class RefreshTokenView(APIView):
                 })
             return response
         except Exception as e:
-            return Response("유효하지 않은 Refresh Token입니다.", status=400)
+            return Response("유효하지 않은 Refresh Token입니다.", status=status.HTTP_400_BAD_REQUEST)
