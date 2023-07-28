@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Chat
+from datetime import datetime
+import json
 
 
 class ChatListSerializer(serializers.ModelSerializer):
@@ -25,6 +27,8 @@ class ChatListSerializer(serializers.ModelSerializer):
 
 class ChatSerializer(serializers.ModelSerializer):
 
+    title = serializers.CharField(required=False)
+    content = serializers.CharField(required=False)
 
     class Meta:
         model = Chat
@@ -34,9 +38,11 @@ class ChatSerializer(serializers.ModelSerializer):
     def validate(self, data):
         title = data.get('title')
         content = data.get('content')
-        # if not title:
-        #     self.validated_data['title'] = 
-        if not content:
+        if not title:
+            writer = self.context.get('request').user
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M')
+            data['title'] = f"{writer}님의 {current_time} 질문"
+        if content and not json.loads(content)[0].get('content'):
             raise serializers.ValidationError('질문은 필수 입력 값입니다.')
 
         return super().validate(data)

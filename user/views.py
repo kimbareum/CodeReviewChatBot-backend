@@ -20,12 +20,10 @@ from .serializers import LoginSerializer, SignupSerializer
 User = get_user_model()
 
 
+@permission_classes([AllowAny])
 class SingupView(APIView):
 
     def post(self, request):
-        print(request.data)
-        if request.user.is_authenticated:
-            return Response("이미 로그인 되어 있습니다.", status=status.HTTP_400_BAD_REQUEST)
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -34,11 +32,10 @@ class SingupView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @permission_classes([AllowAny])
+@permission_classes([AllowAny])
 class LoginView(APIView):
 
     def post(self, request):
-        print(request.data)
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -61,7 +58,7 @@ class LoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @permission_classes([AllowAny])
+@permission_classes([AllowAny])
 class LogoutView(APIView):
 
     def post(self, request):
@@ -78,7 +75,7 @@ class LogoutView(APIView):
         return response
 
 
-# @permission_classes([AllowAny])
+@permission_classes([AllowAny])
 class RefreshTokenView(APIView):
 
     def post(self, request):

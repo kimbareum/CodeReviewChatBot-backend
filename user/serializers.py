@@ -36,7 +36,7 @@ class LoginSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'password']
         extra_kwargs = {
-            'username': {'validators': []},  # Disable uniqueness validation
+            'username': {'validators': []}, 
         }
 
     def validate(self, data):
