@@ -52,8 +52,7 @@ class LoginView(APIView):
                 },
                 status=status.HTTP_200_OK
             )
-
-            print(response.cookies)
+            
             response.set_cookie("refresh", refresh_token, httponly=True, samesite='None', secure=True)
             return response
         
