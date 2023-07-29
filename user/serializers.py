@@ -1,7 +1,12 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.settings import api_settings
+
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+
 
 User = get_user_model()
 
@@ -59,3 +64,40 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('휴먼유저입니다.')
         
         return { "username": username, "password": password, "user":user }
+
+
+class RefreshTokenSerializer(serializers.Serializer):
+
+    refresh = serializers.CharField()
+    access = serializers.CharField(read_only=True)
+    token_class = RefreshToken
+
+    def validate(self, attrs):
+    
+        refresh = self.token_class(attrs["refresh"])
+        access = refresh.access_token
+        data = {"access": str(refresh.access_token)}
+
+        try:
+            user = User.objects.get(pk=access.get('user_id'), is_active=True)
+        except:
+            raise serializers.ValidationError("유저가 존재하지 않습니다.")
+        data['user'] = user
+
+        if api_settings.ROTATE_REFRESH_TOKENS:
+            if api_settings.BLACKLIST_AFTER_ROTATION:
+                try:
+                    # Attempt to blacklist the given refresh token
+                    refresh.blacklist()
+                except AttributeError:
+                    # If blacklist app not installed, `blacklist` method will
+                    # not be present
+                    pass
+
+            refresh.set_jti()
+            refresh.set_exp()
+            refresh.set_iat()
+
+            data["refresh"] = str(refresh)
+            
+        return data

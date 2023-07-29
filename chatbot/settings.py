@@ -135,25 +135,26 @@ REST_FRAMEWORK = {
 REST_USE_JWT = True
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': False,
+    'UPDATE_LAST_LOGIN': True,
 }
 
 # CORS
 CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000']
 CORS_ALLOW_CREDENTIALS = True
 
-# # CSRF
-# CSRF_USE_SESSIONS = True
+# CSRF
+
+# CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:3000', 'http://localhost:3000']
 
 
 # # SESSION
 # SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# SESSION_COOKIE_AGE = 86400
+# SESSION_COOKIE_AGE = 3600
 # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 

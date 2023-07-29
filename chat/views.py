@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -108,8 +109,11 @@ class ChatWrite(APIView):
 # @permission_classes([IsAuthenticated])
 class ChatUpdate(APIView):
 
+    # @method_decorator(ensure_csrf_cookie)
+    # @method_decorator(csrf_protect)
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
+        print(request.META)
         try:
             chat = Chat.objects.prefetch_related('writer').get(pk=chat_id)
         except ObjectDoesNotExist as e:
