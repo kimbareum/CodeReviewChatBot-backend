@@ -73,8 +73,11 @@ class RefreshTokenSerializer(serializers.Serializer):
     token_class = RefreshToken
 
     def validate(self, attrs):
-    
-        refresh = self.token_class(attrs["refresh"])
+        
+        try:
+            refresh = self.token_class(attrs["refresh"])
+        except:
+            raise serializers.ValidationError('유효하지 않거나 만료된 토큰입니다.')
         access = refresh.access_token
         data = {"access": str(refresh.access_token)}
 

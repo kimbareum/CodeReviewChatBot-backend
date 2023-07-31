@@ -6,13 +6,13 @@ from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes, throttle_classes
 from rest_framework import status
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from .models import Chat
-from .serializers import ChatListSerializer, ChatSerializer
-
+from .models import Chat, Comment, ChildComment
+from .serializers import ChatListSerializer, ChatSerializer, CommentSerializer, ChildCommentSerializer
 from chatbot.utils.openAI_API import generate_response
 from chatbot.utils.decorator import is_user_own
 
@@ -74,7 +74,7 @@ class ChatDetail(APIView):
 
     def get(self, request, chat_id):
         try:
-            chat = Chat.objects.prefetch_related('writer').get(pk=chat_id)
+            chat = Chat.objects.prefetch_related('writer', 'comment_set', 'childcomment_set').get(pk=chat_id)
         except ObjectDoesNotExist as e:
             return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         
@@ -84,15 +84,18 @@ class ChatDetail(APIView):
             user_owned = True
 
         serialized_chat = ChatSerializer(chat)
+        serialized_comments = CommentSerializer(chat.comment_set.all(), many=True, context={"user":user})
 
         context = {
             "chat": serialized_chat.data,
+            "comments": serialized_comments.data,
             "user_owned": user_owned,
         }
 
         return Response(context)
 
 
+@throttle_classes([UserRateThrottle])
 class ChatWrite(APIView):
 
     def post(self, request):
@@ -107,13 +110,14 @@ class ChatWrite(APIView):
 
 
 # @permission_classes([IsAuthenticated])
+@throttle_classes([UserRateThrottle])
 class ChatUpdate(APIView):
 
     # @method_decorator(ensure_csrf_cookie)
     # @method_decorator(csrf_protect)
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
-        print(request.META)
+        # print(request.META)
         try:
             chat = Chat.objects.prefetch_related('writer').get(pk=chat_id)
         except ObjectDoesNotExist as e:
@@ -144,3 +148,57 @@ class ChatDelete(APIView):
         chat.is_deleted = True
         chat.save()
         return Response("삭제되었습니다", status=status.HTTP_200_OK)
+
+
+# @permission_classes([AllowAny])
+# @throttle_classes([UserRateThrottle])
+class CommentWrite(APIView):
+
+    def post(self, request, chat_id):
+        try:
+            chat = Chat.objects.prefetch_related('writer').get(pk=chat_id)
+        except ObjectDoesNotExist as e:
+            return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+        
+        user = request.user
+        
+        if request.data.get('parent_comment_id'):
+            serializer = ChildCommentSerializer(data=request.data)
+        else:
+            serializer = CommentSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user=request.user
+            serializer.save(writer=user, chat=chat)
+
+            comments = Comment.objects.filter(chat=chat)
+            serialized_comments = CommentSerializer(comments, many=True, context={"user":user})
+
+            return Response(serialized_comments.data)
+        
+        return Response("error", status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentDelete(APIView):
+
+    def post(self, request, **kwargs):
+        comment_id = kwargs.get('comment_id')
+        childcomment_id = kwargs.get('childcomment_id')
+        if comment_id:
+            try:
+                comment = Comment.objects.get(pk=comment_id)
+            except ObjectDoesNotExist as e:
+                return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+        if childcomment_id:
+            try:
+                comment = ChildComment.objects.get(pk=childcomment_id)
+            except ObjectDoesNotExist as e:
+                return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+            
+        comment.is_deleted = True
+        comment.save()
+
+        return Response("삭제되었습니다", status=status.HTTP_200_OK)
+
+
+

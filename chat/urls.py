@@ -10,4 +10,7 @@ urlpatterns = [
     path('<int:chat_id>/update/', views.ChatUpdate.as_view()),
     path('write/', views.ChatWrite.as_view()),
     path('delete/<int:chat_id>/', views.ChatDelete.as_view()),
+    path('<int:chat_id>/comment/write/', views.CommentWrite.as_view()),
+    path('comment/delete/child/<int:childcomment_id>/', views.CommentDelete.as_view()),
+    path('comment/delete/<int:comment_id>/', views.CommentDelete.as_view()),
 ]

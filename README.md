@@ -15,3 +15,5 @@
 7. 게시글 삭제 및 수정기능 구현. => delete시 chatlist도 변화하게 지정.
 
 8. chatGPT 연동.
+
+9. 댓글 serializer, 대댓글 댓글 동시에 지원하게 구현해보기.

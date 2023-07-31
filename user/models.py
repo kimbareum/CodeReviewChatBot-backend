@@ -17,36 +17,9 @@ class UploadToPath:
         return f"profile/{instance.pk}/{unique_filename}"
 
 
-# class UserManager(BaseUserManager):
-
-#     def _create_user(self, username, password, nickname, is_staff, is_superuser, **extra_fields):
-#         if not username:
-#             raise ValueError('User must have an username')
-#         now = timezone.localtime()
-#         user = self.model(
-#             username = username,
-#             nickname = nickname,
-#             is_staff = is_staff,
-#             is_active = True,
-#             is_superuser = is_superuser,
-#             last_login = now,
-#             date_joined = now,
-#             **extra_fields
-#         )
-#         user.set_password(password)
-#         user.save(using=self._db)  
-#         return user
-    
-#     def create_user(self, username, password, nickname, **extra_fields):
-#         return self._create_user(username, password, nickname, False, False, **extra_fields)
-    
-#     def create_superuser(self, username, password, nickname, **extra_fields):
-#         return self._create_user(username, password, nickname, True, True, **extra_fields)
-
-
 class User(AbstractUser):
     nickname = models.CharField(max_length=15)
-    image = models.ImageField(upload_to=UploadToPath(), default='/my_profile.png')
+    image = models.ImageField(upload_to=UploadToPath(), default='/default-user.png')
     first_name = None
     last_name = None
 
