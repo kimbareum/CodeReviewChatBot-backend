@@ -108,3 +108,12 @@ class ProfileView(APIView):
         user = request.user
         serialized_profile = ProfileSerializer(user)
         return Response(serialized_profile.data)
+    
+    def post(self, request):
+        user = request.user
+        serialized_profile = ProfileSerializer(user, data=request.data)
+        if serialized_profile.is_valid():
+            serialized_profile.save()
+            return Response(serialized_profile.data)
+        
+        return Response(serialized_profile.errors, status=status.HTTP_400_BAD_REQUEST)
