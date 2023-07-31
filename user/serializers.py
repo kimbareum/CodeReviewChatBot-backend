@@ -101,3 +101,10 @@ class RefreshTokenSerializer(serializers.Serializer):
             data["refresh"] = str(refresh)
             
         return data
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['nickname', 'image']

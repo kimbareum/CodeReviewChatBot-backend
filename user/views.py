@@ -4,8 +4,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import permission_classes, throttle_classes
+from rest_framework.throttling import AnonRateThrottle
 
 from rest_framework_simplejwt.views import TokenViewBase
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -13,7 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
 from django.contrib.auth import get_user_model
-from .serializers import LoginSerializer, SignupSerializer, RefreshTokenSerializer
+from .serializers import LoginSerializer, SignupSerializer, RefreshTokenSerializer, ProfileSerializer
 
 # Create your views here.
 
@@ -21,6 +22,7 @@ User = get_user_model()
 
 
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle])
 class SingupView(APIView):
 
     def post(self, request):
@@ -28,14 +30,14 @@ class SingupView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             return Response("회원가입에 성공했습니다.", status=status.HTTP_201_CREATED)
-        print(serializer.errors)
+        # print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes([AllowAny])
 class LoginView(APIView):
 
-    @method_decorator(ensure_csrf_cookie)
+    # @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
@@ -77,36 +79,10 @@ class LogoutView(APIView):
         return response
 
 
-# @permission_classes([AllowAny])
-# class RefreshTokenView(APIView):
-
-#     def post(self, request):
-#         refresh_token = request.COOKIES.get('refresh')
-
-#         if not refresh_token:
-#             return Response("Refresh Token이 없습니다.", status=status.HTTP_400_BAD_REQUEST)
-        
-#         # tokenSerializer = RefreshTokenSerializer(data=request.COOKIES)
-
-#         # # if tokenSerializer.is_valid(raise_exception=True):
-#         # #     print(tokenSerializer.data)
-
-#         try:
-#             refresh = RefreshToken(refresh_token)
-#             access_token = refresh.access_token
-#             user = User.objects.get(pk=access_token.get('user_id'))
-#             response = Response({
-#                 "access_token": str(access_token),
-#                 "user": {"id":user.pk, "nickname": user.nickname}
-#                 })
-#             return response
-#         except Exception as e:
-#             return Response("유효하지 않은 Refresh Token입니다.", status=status.HTTP_400_BAD_REQUEST)
-
 @permission_classes([AllowAny])
 class RefreshTokenView(APIView):
 
-    @method_decorator(ensure_csrf_cookie)
+    # @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         
         tokenSerializer = RefreshTokenSerializer(data=request.COOKIES)
@@ -124,3 +100,11 @@ class RefreshTokenView(APIView):
             return response
         
         return Response("유효하지 않은 Refresh Token입니다.", status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileView(APIView):
+
+    def get(self, request):
+        user = request.user
+        serialized_profile = ProfileSerializer(user)
+        return Response(serialized_profile.data)

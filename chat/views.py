@@ -151,7 +151,7 @@ class ChatDelete(APIView):
 
 
 # @permission_classes([AllowAny])
-# @throttle_classes([UserRateThrottle])
+@throttle_classes([UserRateThrottle])
 class CommentWrite(APIView):
 
     def post(self, request, chat_id):
@@ -179,8 +179,10 @@ class CommentWrite(APIView):
         return Response("error", status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class CommentDelete(APIView):
 
+    @method_decorator(is_user_own)
     def post(self, request, **kwargs):
         comment_id = kwargs.get('comment_id')
         childcomment_id = kwargs.get('childcomment_id')
@@ -197,8 +199,16 @@ class CommentDelete(APIView):
             
         comment.is_deleted = True
         comment.save()
+        chat_id = comment.chat.pk
 
-        return Response("삭제되었습니다", status=status.HTTP_200_OK)
+        try:
+            comments = Comment.objects.prefetch_related('child_comments').filter(chat=chat_id)
+        except ObjectDoesNotExist as e:
+            return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = CommentSerializer(comments, many=True, context={'user': request.user})
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

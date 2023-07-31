@@ -122,7 +122,7 @@ REST_FRAMEWORK = {
         # 'chatbot.utils.custumJWTauthentication.JWTFromCookieAuthentication'
     ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '0/day',  
+        'anon': '1/day',  
         'user': '5/day',  
     }
 }
@@ -131,8 +131,8 @@ REST_FRAMEWORK = {
 REST_USE_JWT = True
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -147,11 +147,11 @@ CORS_ALLOW_CREDENTIALS = True
 # CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:3000', 'http://localhost:3000']
 
 
-# # SESSION
-# SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# SESSION
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# SESSION_COOKIE_AGE = 3600
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 86400
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
 # Internationalization
