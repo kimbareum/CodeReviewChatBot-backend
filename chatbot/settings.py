@@ -30,7 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['52.78.109.184']
+ALLOWED_HOSTS = ['52.78.109.184', 'codereviewchatbot.space']
 
 
 # Application definition
