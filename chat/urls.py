@@ -13,4 +13,6 @@ urlpatterns = [
     path('<int:chat_id>/comment/write/', views.CommentWrite.as_view()),
     path('comment/delete/child/<int:childcomment_id>/', views.CommentDelete.as_view()),
     path('comment/delete/<int:comment_id>/', views.CommentDelete.as_view()),
+    path('comment/update/child/<int:childcomment_id>/', views.CommentUpdate.as_view()),
+    path('comment/update/<int:comment_id>/', views.CommentUpdate.as_view()),
 ]

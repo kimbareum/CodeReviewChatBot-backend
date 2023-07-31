@@ -8,13 +8,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import permission_classes, throttle_classes
 from rest_framework import status
-from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.throttling import UserRateThrottle
+from rest_framework.permissions import AllowAny
 
 from .models import Chat, Comment, ChildComment
 from .serializers import ChatListSerializer, ChatSerializer, CommentSerializer, ChildCommentSerializer
 from chatbot.utils.openAI_API import generate_response
 from chatbot.utils.decorator import is_user_own
+from chatbot.utils.pages import get_page_data
 
 import json
 # Create your views here.
@@ -46,12 +47,11 @@ class ChatList(APIView):
 
         serialized_chats = ChatListSerializer(page_object, many=True)
 
+        page_data = get_page_data(page, len(paginator.page_range))
+
         context = {
         "chats": serialized_chats.data,
-        "paginator": {
-            "page_range": list(paginator.page_range),
-            "current_page": page,
-            },
+        "paginator": page_data,
         }
 
         return Response(context)
@@ -109,12 +109,10 @@ class ChatWrite(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @permission_classes([IsAuthenticated])
+
 @throttle_classes([UserRateThrottle])
 class ChatUpdate(APIView):
 
-    # @method_decorator(ensure_csrf_cookie)
-    # @method_decorator(csrf_protect)
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
         # print(request.META)
@@ -135,7 +133,7 @@ class ChatUpdate(APIView):
             }
             return Response(context, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class ChatDelete(APIView):
 
@@ -150,8 +148,6 @@ class ChatDelete(APIView):
         return Response("삭제되었습니다", status=status.HTTP_200_OK)
 
 
-# @permission_classes([AllowAny])
-@throttle_classes([UserRateThrottle])
 class CommentWrite(APIView):
 
     def post(self, request, chat_id):
@@ -174,7 +170,33 @@ class CommentWrite(APIView):
             comments = Comment.objects.filter(chat=chat)
             serialized_comments = CommentSerializer(comments, many=True, context={"user":user})
 
-            return Response(serialized_comments.data)
+            return Response(serialized_comments.data, status=status.HTTP_201_CREATED)
+        
+        return Response("error", status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentUpdate(APIView):
+
+    @method_decorator(is_user_own)
+    def post(self, request, **kwargs):
+        comment_id = kwargs.get('comment_id')
+        childcomment_id = kwargs.get('childcomment_id')
+        if comment_id:
+            try:
+                comment = Comment.objects.get(pk=comment_id)
+            except ObjectDoesNotExist as e:
+                return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+        if childcomment_id:
+            try:
+                comment = ChildComment.objects.get(pk=childcomment_id)
+            except ObjectDoesNotExist as e:
+                return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+        
+        content = request.data.get('content')
+        if content:
+            comment.content = content
+            comment.save()
+            return Response("수정되었습니다.")
         
         return Response("error", status=status.HTTP_400_BAD_REQUEST)
 
