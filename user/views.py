@@ -1,17 +1,11 @@
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.decorators import permission_classes, throttle_classes
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.decorators import permission_classes
 
-from rest_framework_simplejwt.views import TokenViewBase
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
 from django.contrib.auth import get_user_model
 from .serializers import LoginSerializer, SignupSerializer, RefreshTokenSerializer, ProfileSerializer
@@ -22,8 +16,9 @@ User = get_user_model()
 
 
 @permission_classes([AllowAny])
-@throttle_classes([AnonRateThrottle])
 class SingupView(APIView):
+
+    throttle_scope = 'signup'
 
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
@@ -36,6 +31,8 @@ class SingupView(APIView):
 
 @permission_classes([AllowAny])
 class LoginView(APIView):
+
+    throttle_scope = 'anon'
 
     # @method_decorator(ensure_csrf_cookie)
     def post(self, request):
@@ -65,6 +62,8 @@ class LoginView(APIView):
 @permission_classes([AllowAny])
 class LogoutView(APIView):
 
+    throttle_scope = 'anon'
+
     def post(self, request):
         # try:
         # 요청 데이터에서 refresh 토큰을 가져옵니다.
@@ -81,6 +80,8 @@ class LogoutView(APIView):
 
 @permission_classes([AllowAny])
 class RefreshTokenView(APIView):
+
+    throttle_scope = 'anon'
 
     # @method_decorator(ensure_csrf_cookie)
     def post(self, request):
@@ -103,6 +104,8 @@ class RefreshTokenView(APIView):
 
 
 class ProfileView(APIView):
+
+    throttle_scope = 'user'
 
     def get(self, request):
         user = request.user

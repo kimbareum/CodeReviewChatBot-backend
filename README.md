@@ -38,4 +38,6 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 
 12. 댓글 수정기능.
 
-13. setting에 CORS ORIGIN, ALLOW HOST 수정
+13. 배포이전에 setting에 CORS ORIGIN, ALLOW HOST 수정, 프론트엔드 API 주소 수정해야함.
+
+14. 커스텀 throttle 설정이 필요할것같음.

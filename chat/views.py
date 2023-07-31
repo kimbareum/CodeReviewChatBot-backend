@@ -2,13 +2,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import permission_classes, throttle_classes
+from rest_framework.decorators import permission_classes
 from rest_framework import status
-from rest_framework.throttling import UserRateThrottle
 from rest_framework.permissions import AllowAny
 
 from .models import Chat, Comment, ChildComment
@@ -17,7 +15,6 @@ from chatbot.utils.openAI_API import generate_response
 from chatbot.utils.decorator import is_user_own
 from chatbot.utils.pages import get_page_data
 
-import json
 # Create your views here.
 
 User = get_user_model()
@@ -25,6 +22,8 @@ User = get_user_model()
 
 @permission_classes([AllowAny])
 class ChatList(APIView):
+
+    throttle_scope = 'anon'
 
     def get(self, request):
         page = int(request.GET.get('page', 0))
@@ -59,6 +58,8 @@ class ChatList(APIView):
 
 class UserChatList(APIView):
 
+    throttle_scope = 'user'
+
     def get(self, request):
         user = request.user
         if user:
@@ -71,6 +72,8 @@ class UserChatList(APIView):
 
 @permission_classes([AllowAny])
 class ChatDetail(APIView):
+
+    throttle_scope = 'anon'
 
     def get(self, request, chat_id):
         try:
@@ -95,8 +98,10 @@ class ChatDetail(APIView):
         return Response(context)
 
 
-@throttle_classes([UserRateThrottle])
+# @throttle_scope([UserRateThrottle])
 class ChatWrite(APIView):
+
+    throttle_scope = 'question'
 
     def post(self, request):
         serializer = ChatSerializer(data=request.data, context={'request': request})
@@ -110,8 +115,10 @@ class ChatWrite(APIView):
 
 
 
-@throttle_classes([UserRateThrottle])
+# @throttle_scope([UserRateThrottle])
 class ChatUpdate(APIView):
+
+    throttle_scope = 'question'
 
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
@@ -137,6 +144,8 @@ class ChatUpdate(APIView):
 
 class ChatDelete(APIView):
 
+    throttle_scope = 'user'
+
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
         try:
@@ -149,6 +158,8 @@ class ChatDelete(APIView):
 
 
 class CommentWrite(APIView):
+
+    throttle_scope = 'user'
 
     def post(self, request, chat_id):
         try:
@@ -177,6 +188,8 @@ class CommentWrite(APIView):
 
 class CommentUpdate(APIView):
 
+    throttle_scope = 'user'
+
     @method_decorator(is_user_own)
     def post(self, request, **kwargs):
         comment_id = kwargs.get('comment_id')
@@ -203,6 +216,8 @@ class CommentUpdate(APIView):
 
 
 class CommentDelete(APIView):
+
+    throttle_scope = 'user'
 
     @method_decorator(is_user_own)
     def post(self, request, **kwargs):
