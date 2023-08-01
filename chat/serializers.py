@@ -85,7 +85,12 @@ class ChildCommentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
         if instance.is_deleted:
-            return None
+            rep['created_at'] = '--'
+            rep['writer_nickname'] = '--'
+            rep['writer_profile_image'] = '/media/anonymous.png'
+            rep['user_owned'] = False
+            rep['content'] = '삭제된 댓글입니다.'
+            return rep
         
         rep['created_at'] = instance.created_at.strftime('%Y-%m-%d %H:%M')
         rep['writer_nickname'] = instance.writer.nickname
