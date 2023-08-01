@@ -132,7 +132,7 @@ class CommentSerializer(serializers.ModelSerializer):
         if instance.writer == user:
             rep['user_owned'] = True
         if instance.has_child :
-            childComments = instance.child_comments.all()
+            childComments = instance.child_comments.filter(is_deleted=False)
             serializers = ChildCommentSerializer(childComments, many=True, context={'user':user})
             rep['child_comments'] = serializers.data
         return rep
