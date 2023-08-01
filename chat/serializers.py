@@ -74,7 +74,7 @@ class ChildCommentSerializer(serializers.ModelSerializer):
 
         try: 
             parent_comment = Comment.objects.get(pk=parent_comment_id)
-            parent_comment.has_child = True
+            parent_comment.child_count += 1
             parent_comment.save()
         except:
             raise ("존재하지 않는 댓글입니다.")
@@ -83,15 +83,9 @@ class ChildCommentSerializer(serializers.ModelSerializer):
 
 
     def to_representation(self, instance):
+
         rep = super().to_representation(instance)
-        if instance.is_deleted:
-            rep['created_at'] = '--'
-            rep['writer_nickname'] = '--'
-            rep['writer_profile_image'] = '/media/anonymous.png'
-            rep['user_owned'] = False
-            rep['content'] = '삭제된 댓글입니다.'
-            return rep
-        
+
         rep['created_at'] = instance.created_at.strftime('%Y-%m-%d %H:%M')
         rep['writer_nickname'] = instance.writer.nickname
         rep['writer_profile_image'] = instance.writer.image.url
@@ -127,11 +121,12 @@ class CommentSerializer(serializers.ModelSerializer):
         rep['writer_nickname'] = instance.writer.nickname
         rep['writer_profile_image'] = instance.writer.image.url
 
-        
+
         rep['user_owned'] = False
         if instance.writer == user:
             rep['user_owned'] = True
-        if instance.has_child :
+
+        if instance.child_count >= 1:
             childComments = instance.child_comments.filter(is_deleted=False)
             serializers = ChildCommentSerializer(childComments, many=True, context={'user':user})
             rep['child_comments'] = serializers.data

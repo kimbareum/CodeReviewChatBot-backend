@@ -25,7 +25,5 @@ class User(AbstractUser):
 
     REQUIRED_FIELDS = ['nickname']
 
-    # objects = UserManager()
-
     def __str__(self):
         return self.nickname

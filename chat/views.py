@@ -98,7 +98,7 @@ class ChatDetail(APIView):
             chat = Chat.objects.prefetch_related('writer', 'comment_set__child_comments').get(pk=chat_id)
         except ObjectDoesNotExist as e:
             return Response(str(e), status=status.HTTP_404_NOT_FOUND)
-        
+
         user = request.user
         user_owned = False
         if user and chat.writer == user:
@@ -111,9 +111,8 @@ class ChatDetail(APIView):
         if visited_post.get('flag'):
             chat.view_count += 1
             chat.save(update_fields=['view_count'])
-
         serialized_chat = ChatSerializer(chat)
-        serialized_comments = CommentSerializer(chat.comment_set.filter(Q(is_deleted=False) | (Q(is_deleted=True) & Q(has_child=True))), many=True, context={"user":user})
+        serialized_comments = CommentSerializer(chat.comment_set.filter(Q(is_deleted=False) | (Q(is_deleted=True) & Q(child_count__gte=1))), many=True, context={"user":user})
 
         context = {
             "chat": serialized_chat.data,
@@ -121,7 +120,7 @@ class ChatDetail(APIView):
             "user_owned": user_owned,
             "visited_post": visited_post.get('value'),
         }
-
+        # print(context)
         return Response(context)
 
 
@@ -266,6 +265,9 @@ class CommentDelete(APIView):
         if childcomment_id:
             try:
                 comment = ChildComment.objects.get(pk=childcomment_id)
+                parent_comment = comment.parent_comment
+                parent_comment.child_count -= 1
+                parent_comment.save()
             except ObjectDoesNotExist as e:
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
             
@@ -279,7 +281,6 @@ class CommentDelete(APIView):
             return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         
         serializer = CommentSerializer(comments, many=True, context={'user': request.user})
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

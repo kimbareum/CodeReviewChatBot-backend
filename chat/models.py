@@ -40,7 +40,7 @@ class Chat(models.Model):
 class ActiveCommentManager(models.Manager):
 
     def get_queryset(self) -> QuerySet:
-        return super().get_queryset().filter(Q(is_deleted=False) | (Q(is_deleted=True) & Q(has_child=True)))
+        return super().get_queryset().filter(Q(is_deleted=False) | (Q(is_deleted=True) & Q(child_count__gte=1)))
 
 
 class Comment(models.Model):
@@ -50,7 +50,7 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
-    has_child = models.BooleanField(default=False)
+    child_count = models.IntegerField(default=0)
 
     all_objects = models.Manager()
     objects = ActiveCommentManager()
