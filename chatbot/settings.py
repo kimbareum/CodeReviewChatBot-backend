@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
-import rest_framework
 
 # Auth user
 AUTH_USER_MODEL = 'user.User'
@@ -31,8 +30,8 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# ALLOWED_HOSTS = ['codereviewchatbot.space']
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['codereviewchatbot.space']
+# ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -117,12 +116,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # rest_framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        # 'rest_framework.permissions.AllowAny',
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # 'chatbot.utils.custumJWTauthentication.JWTFromCookieAuthentication'
     ),
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.ScopedRateThrottle',
@@ -147,14 +144,10 @@ SIMPLE_JWT = {
 
 # CORS
 CORS_ORIGIN_WHITELIST = [
-                        # 'https://kimbareum.github.io',
-                        'http://127.0.0.1:3000','http://localhost:3000'
+                        'https://kimbareum.github.io',
+                        # 'http://127.0.0.1:3000','http://localhost:3000'
                         ]
 CORS_ALLOW_CREDENTIALS = True
-
-# CSRF
-
-# CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:3000', 'http://localhost:3000']
 
 
 # SESSION

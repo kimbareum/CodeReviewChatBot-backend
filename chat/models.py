@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.query import QuerySet
 from django.db.models import Q
 
+from django.utils import timezone
 # Create your models here.
 
 User = get_user_model()
@@ -28,6 +29,12 @@ class Chat(models.Model):
 
     def __str__(self):
         return f'{self.title}'
+    
+    # def save(self, *args, **kwargs):
+    #     if not self.id:
+    #         self.created_at = timezone.now()
+    #     self.updated_at = timezone.now()
+    #     super(Chat, self).save(*args, **kwargs)
 
 
 class ActiveCommentManager(models.Manager):

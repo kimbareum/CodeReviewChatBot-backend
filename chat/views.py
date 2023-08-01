@@ -2,6 +2,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Q
+
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,6 +16,7 @@ from .serializers import ChatListSerializer, ChatSerializer, CommentSerializer, 
 from chatbot.utils.openAI_API import generate_response
 from chatbot.utils.decorator import is_user_own
 from chatbot.utils.pages import get_page_data
+from chatbot.utils.utils import get_visited_post
 
 # Create your views here.
 
@@ -26,8 +29,23 @@ class ChatList(APIView):
     throttle_scope = 'normal'
 
     def get(self, request):
+        search_type = request.GET.get('type')
+        search_text = request.GET.get('text')
+
+        query = ''
+
+        if search_type == 'title':
+            query = Q(title__icontains=search_text)
+        elif search_type == 'content':
+            query = Q(content__icontains=search_text)
+        elif search_type == 'writer':
+            query = Q(writer__nickname__icontains=search_text)
+
         page = int(request.GET.get('page', 0))
-        chats = Chat.objects.prefetch_related('writer').all().order_by('-updated_at')
+        if query:
+            chats = Chat.objects.prefetch_related('writer').filter(query).order_by('-updated_at')
+        else:
+            chats = Chat.objects.prefetch_related('writer').all().order_by('-updated_at')
 
         paginator = Paginator(chats, 10)
 
@@ -86,6 +104,14 @@ class ChatDetail(APIView):
         if user and chat.writer == user:
             user_owned = True
 
+        visited_post = get_visited_post(request, chat_id)
+
+        # print(visited_post)
+
+        if visited_post.get('flag'):
+            chat.view_count += 1
+            chat.save(update_fields=['view_count'])
+
         serialized_chat = ChatSerializer(chat)
         serialized_comments = CommentSerializer(chat.comment_set.all(), many=True, context={"user":user})
 
@@ -93,6 +119,7 @@ class ChatDetail(APIView):
             "chat": serialized_chat.data,
             "comments": serialized_comments.data,
             "user_owned": user_owned,
+            "visited_post": visited_post.get('value'),
         }
 
         return Response(context)
