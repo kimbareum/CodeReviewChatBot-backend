@@ -16,7 +16,7 @@ def is_user_own(func):
             if request.user != get_object_or_404(Comment, pk=comment_id).writer:
                 raise Http404()
         if childcomment_id:
-            if request.user != get_object_or_404(ChildComment, pk=comment_id).writer:
+            if request.user != get_object_or_404(ChildComment, pk=childcomment_id).writer:
                 raise Http404()
 
         return func(request, *args, **kwargs)

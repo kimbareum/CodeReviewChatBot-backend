@@ -31,8 +31,8 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['codereviewchatbot.space']
-# ALLOWED_HOSTS = ['127.0.0.1']
+# ALLOWED_HOSTS = ['codereviewchatbot.space']
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -128,8 +128,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': { 
-        'anon': '10/minute',  
-        'user': '30/minute',
+        'normal': '20/minute',
         'question': '5/day',
         'signup': '1/day',  
     }
@@ -148,8 +147,8 @@ SIMPLE_JWT = {
 
 # CORS
 CORS_ORIGIN_WHITELIST = [
-                        'https://kimbareum.github.io',
-                        # 'http://127.0.0.1:3000','http://localhost:3000'
+                        # 'https://kimbareum.github.io',
+                        'http://127.0.0.1:3000','http://localhost:3000'
                         ]
 CORS_ALLOW_CREDENTIALS = True
 

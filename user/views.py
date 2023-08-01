@@ -32,7 +32,7 @@ class SingupView(APIView):
 @permission_classes([AllowAny])
 class LoginView(APIView):
 
-    throttle_scope = 'anon'
+    throttle_scope = 'normal'
 
     # @method_decorator(ensure_csrf_cookie)
     def post(self, request):
@@ -62,7 +62,7 @@ class LoginView(APIView):
 @permission_classes([AllowAny])
 class LogoutView(APIView):
 
-    throttle_scope = 'anon'
+    throttle_scope = 'normal'
 
     def post(self, request):
         # try:
@@ -81,7 +81,7 @@ class LogoutView(APIView):
 @permission_classes([AllowAny])
 class RefreshTokenView(APIView):
 
-    throttle_scope = 'anon'
+    throttle_scope = 'normal'
 
     # @method_decorator(ensure_csrf_cookie)
     def post(self, request):
@@ -105,7 +105,7 @@ class RefreshTokenView(APIView):
 
 class ProfileView(APIView):
 
-    throttle_scope = 'user'
+    throttle_scope = 'normal'
 
     def get(self, request):
         user = request.user

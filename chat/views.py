@@ -23,7 +23,7 @@ User = get_user_model()
 @permission_classes([AllowAny])
 class ChatList(APIView):
 
-    throttle_scope = 'anon'
+    throttle_scope = 'normal'
 
     def get(self, request):
         page = int(request.GET.get('page', 0))
@@ -58,7 +58,7 @@ class ChatList(APIView):
 
 class UserChatList(APIView):
 
-    throttle_scope = 'user'
+    throttle_scope = 'normal'
 
     def get(self, request):
         user = request.user
@@ -73,7 +73,7 @@ class UserChatList(APIView):
 @permission_classes([AllowAny])
 class ChatDetail(APIView):
 
-    throttle_scope = 'anon'
+    throttle_scope = 'normal'
 
     def get(self, request, chat_id):
         try:
@@ -144,7 +144,7 @@ class ChatUpdate(APIView):
 
 class ChatDelete(APIView):
 
-    throttle_scope = 'user'
+    throttle_scope = 'normal'
 
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
@@ -159,7 +159,7 @@ class ChatDelete(APIView):
 
 class CommentWrite(APIView):
 
-    throttle_scope = 'user'
+    throttle_scope = 'normal'
 
     def post(self, request, chat_id):
         try:
@@ -188,12 +188,13 @@ class CommentWrite(APIView):
 
 class CommentUpdate(APIView):
 
-    throttle_scope = 'user'
+    throttle_scope = 'normal'
 
     @method_decorator(is_user_own)
     def post(self, request, **kwargs):
         comment_id = kwargs.get('comment_id')
         childcomment_id = kwargs.get('childcomment_id')
+
         if comment_id:
             try:
                 comment = Comment.objects.get(pk=comment_id)
@@ -209,7 +210,13 @@ class CommentUpdate(APIView):
         if content:
             comment.content = content
             comment.save()
-            return Response("수정되었습니다.")
+            chat_id = comment.chat.pk
+            try:
+                comments = Comment.objects.prefetch_related('child_comments').filter(chat=chat_id)
+            except ObjectDoesNotExist as e:
+                return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+            serializer = CommentSerializer(comments, many=True, context={'user': request.user})
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
         return Response("error", status=status.HTTP_400_BAD_REQUEST)
 
@@ -217,7 +224,7 @@ class CommentUpdate(APIView):
 
 class CommentDelete(APIView):
 
-    throttle_scope = 'user'
+    throttle_scope = 'normal'
 
     @method_decorator(is_user_own)
     def post(self, request, **kwargs):
