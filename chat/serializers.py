@@ -84,7 +84,7 @@ class ChildCommentSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        if instance.is_deleted and instance.has_child:
+        if instance.is_deleted:
             return None
         
         rep['created_at'] = instance.created_at.strftime('%Y-%m-%d %H:%M')
