@@ -113,7 +113,7 @@ class ChatDetail(APIView):
             chat.save(update_fields=['view_count'])
 
         serialized_chat = ChatSerializer(chat)
-        serialized_comments = CommentSerializer(chat.comment_set.all(), many=True, context={"user":user})
+        serialized_comments = CommentSerializer(chat.comment_set.filter(Q(is_deleted=False) | (Q(is_deleted=True) & Q(has_child=True))), many=True, context={"user":user})
 
         context = {
             "chat": serialized_chat.data,
@@ -184,6 +184,7 @@ class ChatDelete(APIView):
         return Response("삭제되었습니다", status=status.HTTP_200_OK)
 
 
+### Comment
 class CommentWrite(APIView):
 
     throttle_scope = 'normal'
