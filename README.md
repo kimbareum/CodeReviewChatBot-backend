@@ -34,20 +34,18 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 
 10. ~~이미지 업로드하면 과거 이미지는 삭제되게하기.~~
 
-11. CSS 파일 정리하기
+11. ~~CSS 파일 정리하기~~
 
 12. ~~댓글 수정기능.~~
 
-13. 배포이전에 setting에 CORS ORIGIN, ALLOW HOST 수정, 프론트엔드 API 주소 수정해야함. DEBUG 도 false로
+13. ~~배포이전에 setting에 CORS ORIGIN, ALLOW HOST 수정, 프론트엔드 API 주소 수정해야함. DEBUG 도 false로~~
 
 14. ~~커스텀 throttle 설정이 필요할것같음.~~
 
-15. Throttle에 따른 안내창이 필요할 것 같음.(모달창)
+15. ~~childComment 컴포넌트 분리.~~
 
-16. ~~childComment 컴포넌트 분리.~~
+16. ~~props들 명시화~~
 
-17. props들 명시화
+17. ~~검색기능.~~
 
-18. 검색기능.
-
-19. ~~조회수.~~ v
+18. ~~조회수.~~ v

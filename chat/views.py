@@ -43,9 +43,9 @@ class ChatList(APIView):
 
         page = int(request.GET.get('page', 0))
         if query:
-            chats = Chat.objects.prefetch_related('writer').filter(query).order_by('-updated_at')
+            chats = Chat.objects.select_related('writer').filter(query).order_by('-updated_at')
         else:
-            chats = Chat.objects.prefetch_related('writer').all().order_by('-updated_at')
+            chats = Chat.objects.select_related('writer').all().order_by('-updated_at')
 
         paginator = Paginator(chats, 10)
 
@@ -81,7 +81,7 @@ class UserChatList(APIView):
     def get(self, request):
         user = request.user
         if user:
-            chats = Chat.objects.prefetch_related('writer').filter(writer=user).order_by('-updated_at')
+            chats = Chat.objects.select_related('writer').filter(writer=user).order_by('-updated_at')
             serialized_chats = ChatListSerializer(chats, many=True)
 
             return Response(serialized_chats.data)
@@ -95,7 +95,7 @@ class ChatDetail(APIView):
 
     def get(self, request, chat_id):
         try:
-            chat = Chat.objects.prefetch_related('writer', 'comment_set', 'childcomment_set').get(pk=chat_id)
+            chat = Chat.objects.prefetch_related('writer', 'comment_set__child_comments').get(pk=chat_id)
         except ObjectDoesNotExist as e:
             return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         
@@ -151,7 +151,7 @@ class ChatUpdate(APIView):
     def post(self, request, chat_id, user_owned):
         # print(request.META)
         try:
-            chat = Chat.objects.prefetch_related('writer').get(pk=chat_id)
+            chat = Chat.objects.select_related('writer').get(pk=chat_id)
         except ObjectDoesNotExist as e:
             return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         serializer = ChatSerializer(chat, data=request.data)
@@ -176,7 +176,7 @@ class ChatDelete(APIView):
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
         try:
-            chat = Chat.objects.prefetch_related('writer').get(pk=chat_id)
+            chat = Chat.objects.get(pk=chat_id)
         except ObjectDoesNotExist as e:
             return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         chat.is_deleted = True
@@ -190,7 +190,7 @@ class CommentWrite(APIView):
 
     def post(self, request, chat_id):
         try:
-            chat = Chat.objects.prefetch_related('writer').get(pk=chat_id)
+            chat = Chat.objects.get(pk=chat_id)
         except ObjectDoesNotExist as e:
             return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         
