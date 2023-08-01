@@ -31,6 +31,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['codereviewchatbot.space']
+# ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -142,6 +143,7 @@ SIMPLE_JWT = {
 
 # CORS
 CORS_ORIGIN_WHITELIST = ['https://kimbareum.github.io']
+# CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000', 'http://localhost:3000']
 CORS_ALLOW_CREDENTIALS = True
 
 
