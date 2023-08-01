@@ -118,7 +118,7 @@ class CommentSerializer(serializers.ModelSerializer):
             rep['writer_profile_image'] = '/media/anonymous.png'
             rep['user_owned'] = False
             rep['content'] = '삭제된 댓글입니다.'
-            childComments = instance.child_comments.all()
+            childComments = instance.child_comments.filter(is_deleted=False)
             serializers = ChildCommentSerializer(childComments, many=True, context={'user':user})
             rep['child_comments'] = serializers.data
             return rep
