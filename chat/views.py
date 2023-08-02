@@ -189,6 +189,8 @@ class CommentWrite(APIView):
     def post(self, request, chat_id):
         
         user = request.user
+
+        chat = None
         
         if request.data.get('parent_comment_id'):
             serializer = ChildCommentSerializer(data=request.data)
