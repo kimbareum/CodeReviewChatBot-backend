@@ -2,7 +2,8 @@
 
 ## 프로젝트 목표
 
-OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만들고, 사용자들이 서로가 올린 질문들을 확인하고 댓글도 달 수 있는 서비스.
+OpenAI API와 연동하여서, 사용자의 코드를 리뷰해주거나 코드에 대한 피드백을 제공하고, 다른 사용자의 질문 내역을 찾아보면서, 다른 사람들의 질문과 답변에서 자신이 원하는 정보를 찾아보거나 피드백을 줄 수 있는 서비스 입니다.  
+이 레포지토리에서는 유저정보, 채팅내역, 댓글에 대한 관리를 하고, OpenAI API와의 통신을 하는 백엔드 서비스를 Django를 이용해서 구축합니다.
 
 ## 개발환경 및 개발 기간
 
@@ -77,7 +78,8 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/708d8bbe-1258-46ba-b02f-c2e2a5082566
 
 - 회원가입과 로그인 페이지입니다.
-- JWT를 이용하여 구현하였습니다.
+- JWT를 이용하면서, access 토큰은 프론트엔드의 메모리에, refresh 토큰은 HTTP only, Secure True 옵션의 쿠키에 저장합니다.
+- 로그인 여부에 따라서 사이드바에 보여지는 리스트의 여부와 버튼의 종류가 달라집니다.
 
 ### 리스트페이지 및 리스트페이지의 업데이트
 
@@ -85,19 +87,21 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/ea33122f-8d26-4f
 
 - 화면 좌측의 사이드바에서는 본인이 작성한 채팅의 리스트만 표시됩니다.
 - 채팅목록을 클릭하면, 다른 유저들의 채팅도 확인할 수 있습니다.
+- 로그인이 되어있지 않으면 사이드바에는 채팅 리스트가 표시되지 않지만, 채팅목록 페이지는 정상적으로 접근이 가능합니다.
 - 채팅목록은 최근에 업데이트된 순으로 표시됩니다.
 
 ### 검색기능
 
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/1cc924e6-7cdf-4997-aa1f-9ec642daf93e
 
-- 제목, 내용, 작성자에 대한 검색이 가능합니다.
+- 채팅내역 중 제목, 내용, 작성자에 대한 검색이 가능합니다.
 
 ### 페이지기능
 
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/9c28cf2e-5eb6-470c-9b7f-25ba34cd657a
 
 - 페이지의 전환이 가능하고, 페이지 번호는 최대 10개까지 표시됩니다.
+- next 버튼과 prev 버튼은 이전페이지나 이후페이지가 존재할때만 표시됩니다.
 - next 버튼과 prev 버튼으로 10개단위의 페이지 이동이 가능하고, 남아있는 페이지가 10개 이하일 경우 제일 처음페이지와 제일 마지막 페이지로 이동합니다.
 
 ### 디테일페이지
@@ -105,20 +109,23 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/9c28cf2e-5eb6-47
 ![디테일 페이지](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/24c43ce1-703b-421d-8751-80146aab2b0a)
 
 - 디테일페이지의 구성은 위와 같습니다.
-- 답변에는 코드블럭을 ReactMarkdown과 ReactSyntaxHighlight를 이용하여서 하이라이팅 해주었습니다.
+- 사용자의 질문을 백엔드로 보낸 후, 백엔드에서 OpenAI API를 통한 응답을 받아서 저장하고 프론트엔드로 응답을 전달 한 후,  프론트엔드에서 응답을 받아서 화면에 보여주게 됩니다.
+- 답변은 마크다운 형식으로 받은 후 코드블럭을 ReactMarkdown과 ReactSyntaxHighlight를 이용하여서 하이라이팅 해주었습니다.
 
 ### 질문 작성 및 추가 질문
 
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/ad30055d-6b00-47ef-b715-9c74def99197
 
 - 새로운 질문을 작성하고, 추가적인 질문을 할 수 있습니다.
-- 새로운 질문을 작성하면 로딩화면을 보여주고, 작성이 완료되면 해당 디테일 페이지로 이동합니다.
+- 새로운 질문을 작성하면 로딩화면을 보여주고, 작성이 완료되면 새롭게 생성된 해당 채팅의 디테일 페이지로 이동합니다.
 
 ### 채팅 삭제
 
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/acbf3da1-0625-4dbc-a9e2-ebddfbca462b
 
 - 채팅의 삭제가 가능합니다.
+- 채팅의 삭제는 사이드바와 채팅의 디테일 페이지 양쪽에서 가능합니다.
+- 채팅의 삭제 및 수정 버튼은 해당 페이지를 소유한 유저에게만 표시됩니다.
 - 채팅의 삭제시 사이드바의 채팅목록에서도 사라집니다.
 
 ### 댓글의 작성 및 삭제
@@ -126,20 +133,24 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/acbf3da1-0625-4d
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/4ef40c7d-cc33-4cca-9faa-5761467bfd06
 
 - 댓글의 작성 및 삭제 기능입니다.
+- 댓글과 댓글에 대한 대댓글 기능을 지원합니다.
 - 대댓글은 depth 1까지만 지원합니다.
+- 댓글과 대댓글의 삭제 버튼은 해당 댓글을 소유한 유저에게만 표시됩니다.
 - 댓글의 삭제시 대댓글이 있으면 삭제된 게시글이라고 표기되고, 대댓글이 없다면 표시되지 않습니다.
 
 ### 댓글의 수정
 
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/d1860e9b-0d6f-4709-9dbe-f5984bf52340
 
-- 댓글의 수정 기능입니다.
+- 댓글과 대댓글의 수정 기능입니다.
+- 댓글과 대댓글의 삭제 버튼은 해당 댓글을 소유한 유저에게만 표시됩니다.
 
 ### 프로필 업데이트
 
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/8c831c28-1e3b-4322-a48a-487cb7514c7a
 
 - 프로필의 업데이트 기능입니다.
+- 사용자의 닉네임과 프로필이미지에 대한 업데이트를 지원합니다.
 
 ### 회원정보 업데이트
 
@@ -148,6 +159,8 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/8c831c28-1e3b-43
 | ![비밀번호변경](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/328934a0-5c3b-4fa9-a5f3-9508ff0a989a)| ![회원탈퇴](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/fb92f8b0-ee8b-49f0-bea6-db737267a724)|
 
 - 비밀번호 변경 및 회원탈퇴 페이지입니다.
+- 회원의 비밀번호를 받아서 인증작업을 거친 후, 해당하는 작업을 수행합니다.
+- 비밀번호의 변경시에는 로그아웃되어서 다시 로그인하도록 합니다.
 
 ## 느낀점
 
@@ -188,6 +201,7 @@ def to_representation(self, instance):
 그 결과 access 토큰은 JavaScript의 메모리에 보관하고, refresh 토큰은 HTTP only, Secure True 옵션의 쿠키를 이용해서 전달하는 것이 보안과 사용자 편의성이 제일 괜찮을 것 같다는 생각이 들어서 이런 방향으로 진행했습니다.  
 단순히 모든 토큰을 메모리에 저장하는 방법도 있었지만, 이 경우 새로고침을 하게되면 로그아웃이 되어버리기 때문에 편의성 측면에서 access 토큰만 메모리에 저장하기로 결정했습니다.   
 이 방향으로 진행할 시, refresh 토큰이 혹시나 탈취당하더라도, SOP 때문에 access 토큰을 확인할 수 없고, access 토큰은 메모리 상에 저장되기 때문에, 탈취하기가 힘들것이라고 생각됩니다.  
+로그아웃은 refresh 토큰을 블랙리스트에 추가하고, 프론트엔드에 있는 access 토큰과 refresh 토큰을 초기화하는 형태로 진행해서 확실한 로그아웃 처리를 목표료 했습니다.  
 CSRF 토큰의 경우에는 프론트엔드와 백엔드가 분리되어 있기 때문에 사용을 하는것 자체가 복잡하고, access 토큰을 발급하는 과정에서 CORS 체크를 하기 때문에, 당장은 제거해도 괜찮을것이라고 생각했습니다.
 
 ### 3. Throttle 설정
