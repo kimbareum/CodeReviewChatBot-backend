@@ -7,7 +7,10 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 ## 개발환경 및 개발 기간
 
 - 개발환경  
-    Django 4.2.3, python 3.11.3, openai 0.27.8, djangorestframework 3.14.0, djangorestframework-simplejwt 5.2.2, django-cors-headers 4.2.0, Pillow 10.0.0, django-cleanup 8.0.0, python-decouple 3.8
+    Django 4.2.3, python 3.11.3, openai 0.27.8, djangorestframework 3.14.0, djangorestframework-simplejwt 5.2.2, django-cors-headers 4.2.0, Pillow 10.0.0, django-cleanup 8.0.0, python-decouple 3.8, uwsgi, nginx, certbot
+
+- 개발기간  
+    프론트엔드와 백엔드 8일
 
 ## 배포
 
@@ -37,8 +40,8 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/708d8bbe-1258-46
 
 https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/ea33122f-8d26-4f63-866d-10bbd40d9934
 
-- 화면 좌측의 사이드바에서는 본인이 작성한 리스트만 표시됩니다.
-- 채팅목록을 클릭하면, 다른 유저들의 리스트도 확인할 수 있습니다.
+- 화면 좌측의 사이드바에서는 본인이 작성한 채팅의 리스트만 표시됩니다.
+- 채팅목록을 클릭하면, 다른 유저들의 채팅도 확인할 수 있습니다.
 - 채팅목록은 최근에 업데이트된 순으로 표시됩니다.
 
 ### 검색기능
@@ -59,7 +62,7 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/9c28cf2e-5eb6-47
 ![디테일 페이지](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/24c43ce1-703b-421d-8751-80146aab2b0a)
 
 - 디테일페이지의 구성은 위와 같습니다.
-- 답변에는 코드블럭을 ReactMarckdown과 React SyntaxHighlighter를 이용하여서 하이라이팅 해주었습니다.
+- 답변에는 코드블럭을 ReactMarkdown과 ReactSyntaxHighlight를 이용하여서 하이라이팅 해주었습니다.
 
 ### 질문 작성 및 추가 질문
 
@@ -199,6 +202,9 @@ chat.save(update_fields=['view_count'])
 대댓글의 경우에는 새로운 대댓글 모델을 만들어서 1:N 관계로 만들어주었습니다. 여기에서 댓글 모델에는 대댓글의 수를 카운트하는 칼럼을 만들어주고, 대댓글이 있을때는 삭제된 코멘트라도 표기가 되고, 대댓글이 없거나 모두 삭제되었으면 아예 표기를 하지 않는 방법을 구현해주었습니다.  
 여기에서 대댓글의 관계가 User, Chat, Comment를 모두 외래키로 참조하고 있는데, 대댓글에서는 Chat의 정보가 필요없지만, prefetch_related로 가져올때 Chat으로 한번에 가져올 수 있고, 현재는 프론트엔드의 알고리즘을 간단하게 하기 위해서 댓글 전체를 업데이트 하는 방식을 선택했기 때문에, 다소 복잡한 관계가 되어 있는 부분이 조금 아쉽습니다.
 
+### 10. 배포
+
+uwsgi와 nginx를 이용한 배포작업은 이전에 진행해보았던 TechBlog 프로젝트와 크게 다르지 않았지만, 도메인을 구매하고, 도메인을 적용하고, django의 세팅을 도메인에 맞게 바꿔주고, certbot을 이용해서 https 인증서를 적용해주는 과정이 새로웠습니다. 
 
 ## 마무리하며
 
