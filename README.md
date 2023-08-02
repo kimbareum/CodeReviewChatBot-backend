@@ -7,7 +7,7 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 ## 개발환경 및 개발 기간
 
 - 개발환경  
-    Django 4.2.3, python 3.11.3, openai 0.27.8, djangorestframework 3.14.0, djangorestframework-simplejwt 5.2.2, django-cors-headers 4.2.0, Pillow 10.0.0, django-cleanup 8.0.0, python-decouple 3.8, uwsgi, nginx, certbot
+    Django 4.2.3, python 3.11.3, openai 0.27.8, djangorestframework 3.14.0, djangorestframework-simplejwt 5.2.2, django-cors-headers 4.2.0, Pillow 10.0.0, django-cleanup 8.0.0, python-decouple 3.8
 
 - 개발기간  
     프론트엔드와 백엔드 8일
@@ -16,6 +16,10 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 
 - [배포 URL](https://kimbareum.github.io/CodeReviewChatBot/)
 - [프론트엔드](https://github.com/kimbareum/CodeReviewChatBot)
+
+- 배포환경
+    - 백엔드 : AWS Lightsail, uwsgi, nginx, certbot
+    - 프론트엔드 : Github Page
 
 ## 구현된 기능
 
@@ -26,6 +30,45 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 ## ERD 모델
 
 ![ERD모델](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/9ac07d93-2904-49f8-843f-034079194fd8)
+
+## URL
+
+### 백엔드
+
+| URL | 기능 |
+|-----|-----|
+|/user/login/|로그인|
+|/user/logout/|로그아웃|
+|/user/signup/|회원가입|
+|/user/delete/|회원탈퇴|
+|/user/password/change/|비밀번호 변경|
+|/user/profile/|프로필 확인 및 수정|
+|/token/refresh/|JWT 토큰 갱신|
+|/chat/list/|게시글목록 및 검색|
+|/chat/list/self/|자신의 게시글 목록|
+|/chat/detail/<chat_id>/|채팅페이지|
+|/chat/<chat_id>/update/|채팅 제목 수정 및 추가질문|
+|/chat/write/|채팅 페이지 작성|
+|/chat/delete/<chat_id>/|채팅 삭제|
+|/chat/<chat_id>/comment/write/|댓글 작성|
+|/chat/comment/delete/<comment_id>|댓글 삭제|
+|/chat/comment/delete/child/<childcomment_id>|대댓글 삭제(댓글과 같은 뷰)|
+|/chat/comment/update/<comment_id>|댓글 수정|
+|/chat/comment/update/child/<childcomment_id>|대댓글 수정(댓글과 같은 뷰)|
+
+### 프론트엔드
+
+| URL | 기능 |
+|-----|-----|
+|/|인덱스 페이지|
+|/chat/<chat_id>/|채팅 페이지|
+|/profile/<user_id>/|프로필 페이지|
+|/user/password/change/|비밀번호 변경 페이지|
+|/user/delete/|회원삭제 페이지|
+|/chat/list/|게시글목록 및 검색 페이지|
+|/login/|로그인 페이지|
+|/signup/|회원가입 페이지|
+
 
 ## 상세 기능
 
