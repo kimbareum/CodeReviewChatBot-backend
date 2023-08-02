@@ -16,7 +16,7 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 
 ## 구현된 기능
 
-1. User의 CRU
+1. User의 CRUD
 2. Chat의 CRUD
 3. 댓글의 CRUD
 
@@ -95,6 +95,13 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/8c831c28-1e3b-43
 
 - 프로필의 업데이트 기능입니다.
 
+### 회원정보 업데이트
+
+| ![회원정보수정페이지](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/79bba1f9-c523-4f7d-a205-bdafaf535e42) |  |
+|-----|-----|
+| ![비밀번호변경](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/328934a0-5c3b-4fa9-a5f3-9508ff0a989a)| ![회원탈퇴](https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/fb92f8b0-ee8b-49f0-bea6-db737267a724)|
+
+- 비밀번호 변경 및 회원탈퇴 페이지입니다.
 
 ## 느낀점
 
