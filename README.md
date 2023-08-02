@@ -43,7 +43,7 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/ea33122f-8d26-4f
 
 ### 검색기능
 
-https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/c534c577-af7c-41b6-8709-c01d45c3a062
+https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/1cc924e6-7cdf-4997-aa1f-9ec642daf93e
 
 - 제목, 내용, 작성자에 대한 검색이 가능합니다.
 
