@@ -8,13 +8,14 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.contrib.auth import get_user_model
-from .serializers import LoginSerializer, SignupSerializer, RefreshTokenSerializer, ProfileSerializer
+from .serializers import LoginSerializer, SignupSerializer, RefreshTokenSerializer, ProfileSerializer, UserDeleteSerializer, PasswordChangeSerializer
 
 # Create your views here.
 
 User = get_user_model()
 
 
+### 유저 인증
 @permission_classes([AllowAny])
 class SingupView(APIView):
 
@@ -34,7 +35,6 @@ class LoginView(APIView):
 
     throttle_scope = 'normal'
 
-    # @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
@@ -65,19 +65,53 @@ class LogoutView(APIView):
     throttle_scope = 'normal'
 
     def post(self, request):
-        # try:
-        # 요청 데이터에서 refresh 토큰을 가져옵니다.
         refresh_token = request.COOKIES.get('refresh')
         if refresh_token:
             token = RefreshToken(refresh_token)
             token.blacklist()
         else:
             return Response('Refresh 토큰이 제공되지 않았습니다.', status=status.HTTP_400_BAD_REQUEST)
-        response = Response({'message': '로그아웃 성공'})
+        response = Response('로그아웃 성공')
         response.set_cookie('refresh', '', httponly=True, samesite='None', secure=True)
         return response
 
 
+class UserDeleteView(APIView):
+
+    throttle_scope = 'normal'
+
+    def post(self, request):
+        user = request.user
+
+        serializer = UserDeleteSerializer(data=request.data, context={"user":user})
+        if serializer.is_valid():
+            user.is_active = False
+            user.save()
+            return Response("회원 비활성화에 성공했습니다.")
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordChangeView(APIView):
+
+    throttle_scope = 'normal'
+
+    def post(self, request):
+        user = request.user
+
+        serializer = PasswordChangeSerializer(data=request.data, context={"user":user})
+        if serializer.is_valid():
+            password = serializer.validated_data.get('password')
+            user.set_password(password)
+            user.save()
+            response = Response("비밀번호 변경에 성공했습니다.")
+            response.set_cookie("refresh", '', httponly=True, samesite='None', secure=True)
+            return response
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+### 토큰
 @permission_classes([AllowAny])
 class RefreshTokenView(APIView):
 

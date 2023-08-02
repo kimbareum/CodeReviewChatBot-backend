@@ -32,14 +32,14 @@ class ChatList(APIView):
         search_type = request.GET.get('type')
         search_text = request.GET.get('text')
 
-        query = ''
+        query = Q(writer__is_active=True)
 
         if search_type == 'title':
-            query = Q(title__icontains=search_text)
+            query &= Q(title__icontains=search_text)
         elif search_type == 'content':
-            query = Q(content__icontains=search_text)
+            query &= Q(content__icontains=search_text)
         elif search_type == 'writer':
-            query = Q(writer__nickname__icontains=search_text)
+            query &= Q(writer__nickname__icontains=search_text)
 
         page = int(request.GET.get('page', 0))
         if query:

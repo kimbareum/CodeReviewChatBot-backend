@@ -87,13 +87,18 @@ class ChildCommentSerializer(serializers.ModelSerializer):
         rep = super().to_representation(instance)
 
         rep['created_at'] = instance.created_at.strftime('%Y-%m-%d %H:%M')
-        rep['writer_nickname'] = instance.writer.nickname
-        rep['writer_profile_image'] = instance.writer.image.url
 
-        user = self.context['user']
         rep['user_owned'] = False
-        if instance.writer == user:
-            rep['user_owned'] = True
+        if instance.writer.is_active:
+            rep['writer_nickname'] = instance.writer.nickname
+            rep['writer_profile_image'] = instance.writer.image.url
+            user = self.context['user']
+            if instance.writer == user:
+                rep['user_owned'] = True
+        else:
+            rep['writer_nickname'] = '탈퇴한 유저입니다.'
+            rep['writer_profile_image'] = '/media/anonymous.png'
+
         return rep
 
 
@@ -118,13 +123,17 @@ class CommentSerializer(serializers.ModelSerializer):
             return rep
 
         rep['created_at'] = instance.created_at.strftime('%Y-%m-%d %H:%M')
-        rep['writer_nickname'] = instance.writer.nickname
-        rep['writer_profile_image'] = instance.writer.image.url
-
 
         rep['user_owned'] = False
-        if instance.writer == user:
-            rep['user_owned'] = True
+        if instance.writer.is_active:
+            rep['writer_nickname'] = instance.writer.nickname
+            rep['writer_profile_image'] = instance.writer.image.url
+            user = self.context['user']
+            if instance.writer == user:
+                rep['user_owned'] = True
+        else:
+            rep['writer_nickname'] = '탈퇴한 유저입니다.'
+            rep['writer_profile_image'] = '/media/anonymous.png'
 
         if instance.child_count >= 1:
             childComments = instance.child_comments.filter(is_deleted=False)

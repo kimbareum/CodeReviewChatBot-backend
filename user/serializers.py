@@ -11,6 +11,7 @@ from django.contrib.auth.password_validation import validate_password
 User = get_user_model()
 
 
+### 회원가입
 class SignupSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -35,6 +36,7 @@ class SignupSerializer(serializers.ModelSerializer):
         return user
 
 
+### 로그인
 class LoginSerializer(serializers.ModelSerializer):
 
     class Meta(object):
@@ -52,7 +54,7 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('아이디는 필수 입력값입니다.')
         
         if not password:
-            raise serializers.ValidationError('패스워드는 필수 입력값입니다.')
+            raise serializers.ValidationError('비밀번호는 필수 입력값입니다.')
 
         user = authenticate(
             username=username, password=password
@@ -61,11 +63,79 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('아이디나 비밀번호가 올바르지 않습니다.')
         
         if not user.is_active:
-            raise serializers.ValidationError('휴먼유저입니다.')
+            raise serializers.ValidationError('휴면유저입니다.')
         
         return { "username": username, "password": password, "user":user }
 
 
+class UserDeleteSerializer(serializers.ModelSerializer):
+
+    class Meta(object):
+        model = User
+        fields = ['password']
+
+    def validate(self, data):
+        password = data.get("password")
+        user = self.context['user']
+        username = user.username
+
+        if not password:
+            raise serializers.ValidationError('비밀번호는 필수 입력값입니다.')
+        
+        user = authenticate(
+            username=username, password=password
+        )
+        
+        if user is None:
+            raise serializers.ValidationError('비밀번호가 올바르지 않습니다.')
+        
+        if not user.is_active:
+            raise serializers.ValidationError('휴면유저입니다.')
+        
+        return { "user":user }
+    
+
+class PasswordChangeSerializer(serializers.ModelSerializer):
+
+    password1 = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+
+    class Meta(object):
+        model = User
+        fields = ['password', 'password1', 'password2']
+
+    def validate(self, data):
+
+        password = data.get("password")
+        password1 = data.get("password1")
+        password2 = data.get("password2")
+        
+        user = self.context['user']
+        username = user.username
+
+        if not password:
+            raise serializers.ValidationError('패스워드는 필수 입력값입니다.')
+        if not password1:
+            raise serializers.ValidationError('신규 패스워드는 필수 입력값입니다.')
+        if not password2:
+            raise serializers.ValidationError('신규 패스워드 확인은 필수 입력값입니다.')
+        if password1 != password2:
+            raise serializers.ValidationError('패스워드가 서로 다릅니다.')
+
+        user = authenticate(
+            username=username, password=password
+        )
+        
+        if user is None:
+            raise serializers.ValidationError('비밀번호가 올바르지 않습니다.')
+        
+        if not user.is_active:
+            raise serializers.ValidationError('휴면유저입니다.')
+        
+        return { "user":user, "password":password1 }
+
+
+### 토큰
 class RefreshTokenSerializer(serializers.Serializer):
 
     refresh = serializers.CharField()
@@ -103,6 +173,7 @@ class RefreshTokenSerializer(serializers.Serializer):
         return data
 
 
+### 프로필
 class ProfileSerializer(serializers.ModelSerializer):
     
     class Meta:

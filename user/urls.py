@@ -9,6 +9,8 @@ urlpatterns = [
     path('login/', views.LoginView.as_view()),
     path('logout/', views.LogoutView.as_view()),
     path('signup/', views.SingupView.as_view()),
+    path('delete/', views.UserDeleteView.as_view()),
+    path('password/change/', views.PasswordChangeView.as_view()),
     # 프로필
     path('profile/', views.ProfileView.as_view()),
     # 토큰
