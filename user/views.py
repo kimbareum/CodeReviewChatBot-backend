@@ -45,7 +45,7 @@ class LoginView(APIView):
             access_token = str(token.access_token)
             response = Response(
                 {
-                    "user": {"id":user.pk, "nickname": user.nickname, "image": str(user.image)},
+                    "user": {"id":user.pk, "nickname": user.nickname, "image": user.image.url},
                     "message": "login success",
                     "access_token": access_token,
                 },
@@ -95,7 +95,7 @@ class RefreshTokenView(APIView):
 
             response = Response({
                 "access_token": str(access_token),
-                "user": {"id":user.pk, "nickname": user.nickname, "image": str(user.image)}
+                "user": {"id":user.pk, "nickname": user.nickname, "image": user.image.url}
                 })
             response.set_cookie("refresh", refresh_token, httponly=True, samesite='None', secure=True)
             return response
