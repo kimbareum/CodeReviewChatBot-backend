@@ -187,26 +187,21 @@ class CommentWrite(APIView):
     throttle_scope = 'normal'
 
     def post(self, request, chat_id):
+        try:
+            chat = Chat.objects.get(pk=chat_id)
+        except ObjectDoesNotExist as e:
+            return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         
         user = request.user
-
-        chat = None
         
         if request.data.get('parent_comment_id'):
             serializer = ChildCommentSerializer(data=request.data)
         else:
             serializer = CommentSerializer(data=request.data)
-            try:
-                chat = Chat.objects.get(pk=chat_id)
-            except ObjectDoesNotExist as e:
-                return Response(str(e), status=status.HTTP_404_NOT_FOUND)
 
         if serializer.is_valid():
             user=request.user
-            if chat:
-                serializer.save(writer=user, chat=chat)
-            else:
-                serializer.save(writer=user)
+            serializer.save(writer=user, chat=chat)
 
             comments = Comment.objects.filter(chat=chat)
             serialized_comments = CommentSerializer(comments, many=True, context={"user":user})
