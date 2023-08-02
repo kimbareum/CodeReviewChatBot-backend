@@ -6,6 +6,8 @@ OpenAI API와 연동하여서, 코드리뷰를 해주는 챗봇 서비스를 만
 
 ## 개발환경 및 개발 기간
 
+- 개발환경  
+    Django 4.2.3, python 3.11.3, openai 0.27.8, djangorestframework 3.14.0, djangorestframework-simplejwt 5.2.2, django-cors-headers 4.2.0, Pillow 10.0.0, django-cleanup 8.0.0, python-decouple 3.8
 
 ## 배포
 
@@ -97,6 +99,31 @@ https://github.com/kimbareum/CodeReviewChatBot/assets/131732610/8c831c28-1e3b-43
 
 모놀리식으로 구성하면, 프론트엔드로 데이터를 어떻게 넘겨줄지에 대한 큰 고민 없이, 데이터를 템플릿에서 직접 접근하여 수정할 수 있었지만, DRF를 이용하게 되면서, 데이터를 어떻게 보내줄지, 그 데이터를 어떻게 받아서 처리할지, 그리고 데이터에 이상한 정보가 함께 전달되지는 않을지에 대한 고민이 생겼습니다.  
 이를 serializer의 to_representation와 validate의 오버라이딩을 적극적으로 활용해서 필요로 하는 데이터만 필요한 형태로 직렬화하도록 구성하였고, 그 데이터를 프론트엔드에서 받아서 처리할 수 있도록 하였습니다.  
+```python
+def validate(self, attrs):
+    title = attrs.get('title')
+    content = attrs.get('content')
+    
+    # 제목이 없을경우 제목을 자동적으로 지정합니다.
+    if not title:
+        writer = self.context.get('request').user
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M')
+        attrs['title'] = f"{writer}님의 {current_time} 질문"
+    # 프론트에서 처리한 content가 양식에 맞지 않거나 content 값이 없을경우 에러처리합니다.
+    if content and not json.loads(content)[0].get('content'):
+        raise serializers.ValidationError('질문은 필수 입력 값입니다.')
+
+    return super().validate(attrs)
+
+
+def to_representation(self, instance):
+    rep = super().to_representation(instance)
+    # 프론트에서 필요한 정보를 추가적으로 넣어줍니다.
+    rep['updated_at'] = instance.updated_at.strftime('%Y-%m-%d %H:%M')
+    rep['writer_nickname'] = instance.writer.nickname
+    rep['writer_profile_image'] = instance.writer.image.url
+    return rep
+```
 이번 프로젝트에서는 혼자서 프론트엔드와 백엔드를 둘 다 구성했지만, 실제 개발 환경에서는 프론트엔드가 필요한 데이터를 백엔드에서 정확하게 파악하고 보내줘야 하기 때문에 기획단계에서 프론트엔드와 긴밀한 협의가 필요할 것 같다는 예상이 듭니다.
 
 ### 2. JWT 인증
@@ -109,53 +136,45 @@ CSRF 토큰의 경우에는 프론트엔드와 백엔드가 분리되어 있기 
 
 ### 3. Throttle 설정
 
-현재 사용하고 있는 OpenAI API는 사용량에 대한 요금을 지불하는 시스템이고, 기본적으로 DRF에서는 외부의 DDOS 공격이나 예상 이상의 트래픽등의 방어하는것이 필요하기 때문에, Throttle 을 적용하였습니다.  
-처음에는 DRF 에서 기본적으로 지원하는 AnonRateThrottle, UserRateThrottle을 이용하려고 했지만, 이 경우 OpenAI API에 대한 Throttle을 다르게 설정하는 것이 불편했기 때문에, ScopedRateThrottle을 이용해서, 일반적인 경우와, 회원가입, OpenAI API 요청에 대한 제한을 다르게 두었습니다.
+현재 사용하고 있는 OpenAI API는 사용량에 대한 요금을 지불하는 시스템이고, 기본적으로 DRF에서는 외부의 DDOS 공격이나 예상 이상의 트래픽등의 방어하는것이 필요하기 때문에, Throttle 을 적용하였습니다.   
+처음에는 DRF 에서 기본적으로 지원하는 AnonRateThrottle, UserRateThrottle을 이용하려고 했지만, 이 경우 OpenAI API에 대한 Throttle을 다르게 설정하는 것이 불편했기 때문에, ScopedRateThrottle을 이용해서, 일반적인 경우와, 회원가입, OpenAI API 요청에 대한 제한을 다르게 두었습니다.  
+```python
+{
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': { 
+        'normal': '20/minute',
+        'question': '5/day',
+        'signup': '1/day',  
+    }
+}
+```
 
 ### 4. Object Manager
 
 과거 프로젝트에서 UserObjectManager를 새로 만들었던 기억이 나서, model 차원에서 필터링이나 데이터 처리를 할 수 있을까 알아보다가, get_queryset 메서드를 오버라이딩해서, 필터처리를 할 수 있는것을 알았습니다.  
+```python
+class ActiveManager(models.Manager):
+    
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter(is_deleted=False)
+```
 이를 이용해서 논리적으로 삭제한 값들을 추가적인 필터링 없이 가져오게 하려고 했으나, Manager는 모델의 objects에 직접 접근했을때만 작동하고, prefetch_related나, select_related 등으로 참조된 값을 한번에 가져올때는 작동하지 않는것을 확인했습니다. 그래서 view에서 어떤 부분은 is_delete에 대한 처리가 없고, 어떤 경우에는 filter로 is_deleted로 가져와야하는 부분이 있었는데 이 부분이 조금 아쉽습니다.
 
 ### 5. 외부 API를 백엔드에서 이용하기
 
 이 부분은 openAI API에서 자체적으로 제작한 패키지가 있어서, 편하게 진행했습니다.  
-이 패키지의 내부구조를 살펴보니, requests 패키지를 활용해서 
+이 패키지의 내부구조를 살펴보니, requests 패키지를 활용하고 있는데, PyScript에서 이용해본 경험이 있으므로, 여기에서도 쉽게 적용할 수 있을 것 같습니다.
 
-## 하고있는일
+### 6. 이미지 처리
 
-1. ~~로딩바 만들기~~
+이미지를 사용하는 부분은 프로필 이미지밖에 없어서, media/profile 경로에 user_pk/uuid.* 폴더에 이미지를 저장하도록 pillow를 이용해서 구성해주고, 이미지가 새로 들어왔을때 django-cleanup 패키지를 이용해서, 과거 이미지가 자동 삭제되도록 설정하였습니다.
 
-2. ~~모달창 만들기 취소...?~~
+### 7. 조회수의 처리
 
-3. ~~에러페이지 다듬기~~
-
-4. ~~도메인 문제 해결하기~~
-
-5. ~~페이지네이터 이전버튼, 이후버튼, 범위관리 만들기~~
-
-6. ~~게시글 삭제 및 수정기능 구현. => delete시 chatlist도 변화하게 지정.~~
-
-7. ~~chatGPT 연동.~~
-
-8. ~~댓글 serializer, 대댓글 댓글 동시에 지원하게 구현해보기.~~
-
-9. ~~푸터위치.~~
-
-10. ~~이미지 업로드하면 과거 이미지는 삭제되게하기.~~
-
-11. ~~CSS 파일 정리하기~~
-
-12. ~~댓글 수정기능.~~
-
-13. ~~배포이전에 setting에 CORS ORIGIN, ALLOW HOST 수정, 프론트엔드 API 주소 수정해야함. DEBUG 도 false로~~
-
-14. ~~커스텀 throttle 설정이 필요할것같음.~~
-
-15. ~~childComment 컴포넌트 분리.~~
-
-16. ~~props들 명시화~~
-
-17. ~~검색기능.~~
-
-18. ~~조회수.~~ v
+조회수의 중복방지 알고리즘은 이전 프로젝트에서는 쿠키를 이용하였으나, 이번 프로젝트에서는 쿠키를 통해서 access 토큰이 전송되게 되는데, 프론트에서 cookie는 token refresh와 login 시에만 주고받도록 하고싶어서, 로컬스토리지를 이용하는 방식을 선택했습니다.  
+또한 현재 페이지에 표시되는 게시글의 순서는 마지막 수정일자를 기준으로 하고 있는데, 조회수가 업데이트되면 수정일자도 업데이트 되는 현상을 발견해서, 다음과 같은 방법으로 조회수만 업데이트 되도록 바꿔주었습니다.
+```python 
+chat.save(update_fields=['view_count'])
+```

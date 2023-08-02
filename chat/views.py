@@ -106,8 +106,6 @@ class ChatDetail(APIView):
 
         visited_post = get_visited_post(request, chat_id)
 
-        # print(visited_post)
-
         if visited_post.get('flag'):
             chat.view_count += 1
             chat.save(update_fields=['view_count'])
@@ -120,7 +118,7 @@ class ChatDetail(APIView):
             "user_owned": user_owned,
             "visited_post": visited_post.get('value'),
         }
-        # print(context)
+
         return Response(context)
 
 
@@ -131,7 +129,7 @@ class ChatWrite(APIView):
 
     def post(self, request):
         serializer = ChatSerializer(data=request.data, context={'request': request})
-        # print(help(serializer.context))
+
         if serializer.is_valid():
             prompt = serializer.validated_data.get('content')
             response = generate_response(prompt)
@@ -148,7 +146,7 @@ class ChatUpdate(APIView):
 
     @method_decorator(is_user_own)
     def post(self, request, chat_id, user_owned):
-        # print(request.META)
+
         try:
             chat = Chat.objects.select_related('writer').get(pk=chat_id)
         except ObjectDoesNotExist as e:
