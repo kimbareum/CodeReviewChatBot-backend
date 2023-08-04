@@ -196,17 +196,22 @@ class CommentWrite(APIView):
         
         if request.data.get('parent_comment_id'):
             serializer = ChildCommentSerializer(data=request.data)
-        else:
-            serializer = CommentSerializer(data=request.data)
-
-        if serializer.is_valid():
-            user=request.user
-            serializer.save(writer=user, chat=chat)
-
-            comments = Comment.objects.filter(chat=chat)
-            serialized_comments = CommentSerializer(comments, many=True, context={"user":user})
+            if serializer.is_valid():
+                serializer.save(writer=user)
+                comments = Comment.objects.filter(chat=chat)
+                serialized_comments = CommentSerializer(comments, many=True, context={"user":user})
 
             return Response(serialized_comments.data, status=status.HTTP_201_CREATED)
+        else:
+            serializer = CommentSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(writer=user, chat=chat)
+                comments = Comment.objects.filter(chat=chat)
+                serialized_comments = CommentSerializer(comments, many=True, context={"user":user})
+
+                return Response(serialized_comments.data, status=status.HTTP_201_CREATED)
+
+        
         
         return Response("error", status=status.HTTP_400_BAD_REQUEST)
 
@@ -223,6 +228,7 @@ class CommentUpdate(APIView):
         if comment_id:
             try:
                 comment = Comment.objects.get(pk=comment_id)
+                
             except ObjectDoesNotExist as e:
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         if childcomment_id:
