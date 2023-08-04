@@ -201,7 +201,7 @@ class CommentWrite(APIView):
                 comments = Comment.objects.filter(chat=chat)
                 serialized_comments = CommentSerializer(comments, many=True, context={"user":user})
 
-            return Response(serialized_comments.data, status=status.HTTP_201_CREATED)
+                return Response(serialized_comments.data, status=status.HTTP_201_CREATED)
         else:
             serializer = CommentSerializer(data=request.data)
             if serializer.is_valid():
@@ -211,8 +211,6 @@ class CommentWrite(APIView):
 
                 return Response(serialized_comments.data, status=status.HTTP_201_CREATED)
 
-        
-        
         return Response("error", status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -228,15 +226,15 @@ class CommentUpdate(APIView):
         if comment_id:
             try:
                 comment = Comment.objects.get(pk=comment_id)
-                chat_id = comment.chat.pk
             except ObjectDoesNotExist as e:
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+            chat_id = comment.chat.pk
         if childcomment_id:
             try:
                 comment = ChildComment.objects.select_related('parent_comment').get(pk=childcomment_id)
-                chat_id = comment.parent_comment.chat.pk
             except ObjectDoesNotExist as e:
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+            chat_id = comment.parent_comment.chat.pk
         
         content = request.data.get('content')
         if content:
@@ -266,18 +264,19 @@ class CommentDelete(APIView):
                 comment = Comment.objects.get(pk=comment_id)
             except ObjectDoesNotExist as e:
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+            chat_id = comment.chat.pk
         if childcomment_id:
             try:
-                comment = ChildComment.objects.get(pk=childcomment_id)
-                parent_comment = comment.parent_comment
-                parent_comment.child_count -= 1
-                parent_comment.save()
+                comment = ChildComment.objects.select_related('parent_comment').get(pk=childcomment_id)
             except ObjectDoesNotExist as e:
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
+            parent_comment = comment.parent_comment
+            parent_comment.child_count -= 1
+            parent_comment.save()
+            chat_id = parent_comment.pk
             
         comment.is_deleted = True
         comment.save()
-        chat_id = comment.chat.pk
 
         try:
             comments = Comment.objects.prefetch_related('child_comments').filter(chat=chat_id)
