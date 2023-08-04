@@ -233,7 +233,7 @@ class CommentUpdate(APIView):
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         if childcomment_id:
             try:
-                comment = ChildComment.objects.prefetch_related('parent_comment__id').get(pk=childcomment_id)
+                comment = ChildComment.objects.select_related('parent_comment').get(pk=childcomment_id)
                 chat_id = comment.parent_comment.chat.pk
             except ObjectDoesNotExist as e:
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)
