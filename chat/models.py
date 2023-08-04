@@ -68,15 +68,14 @@ class ActiveChildCommentManager(models.Manager):
 
 class ChildComment(models.Model):
     writer = models.ForeignKey(User, on_delete=models.CASCADE)
-    # chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
-    parent_comment = models.ForeignKey(Comment, null=True, blank=True, on_delete=models.CASCADE, related_name='child_comments')
+    parent_comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='child_comments')
 
     all_objects = models.Manager()
     objects = ActiveChildCommentManager()
 
     def __str__(self):
-        return f'{self.chat.title}/{self.parent_comment.content}/{self.content}'
+        return f'{self.parent_comment.content}/{self.content}'
